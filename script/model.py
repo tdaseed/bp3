@@ -28,6 +28,7 @@ def logregobj_TL(preds, dtrain):
     return grad, hess
 
 """
+Model to be trained WITHOUT TDA features
 x TDA
 """
 param = {'bst:max_depth':5, 'bst:eta':1, 'silent':1, 'objective':'binary:logistic', 'nthread':4,'eval_metric':'auc'}
@@ -38,6 +39,7 @@ num_round = 6 # 600 #500 # 5 #13
 #file_DF_te = r"C:\@data\ETF\i=7_TDA_L=52x8B\DF_te.csv"
 #file_DF_va = r"C:\@data\ETF\i=7_TDA_L=52x8B\DF_va.csv"
 
+#### only run when no new preprocessing needed
 file_DF_tr = "/Users/tieqiangli/@bp3/data/i=1_TDA_L=52x8/DF_tr.csv"
 file_DF_te = "/Users/tieqiangli/@bp3/data/i=1_TDA_L=52x8/DF_te.csv"
 file_DF_va = "/Users/tieqiangli/@bp3/data/i=1_TDA_L=52x8/DF_va.csv"
@@ -45,6 +47,10 @@ file_DF_va = "/Users/tieqiangli/@bp3/data/i=1_TDA_L=52x8/DF_va.csv"
 DF_tr = pd.read_csv(file_DF_tr)
 DF_te = pd.read_csv(file_DF_te)
 DF_va = pd.read_csv(file_DF_va)
+#### only run when no new preprocessing needed
+
+
+
 
 # record training dataset
 y_tr = DF_tr.y 
@@ -62,21 +68,25 @@ X_va = DF_va.iloc[:,:-1]
 X_va = X_va.drop(['ticker'],axis=1)
 X_va = X_va.astype(float)
 
+# prepare model input data without TDA features
 dtrain = xgb.DMatrix(X_tr,label=y_tr)
 dtest = xgb.DMatrix(X_te,label=y_te)
 evallist  = [(dtest,'eval'), (dtrain,'train')]
 
+# traing xgboost model
 etf_model = xgb.train(param,dtrain,num_round, evallist)
 # with customised objective function
-etf_model = xgb.train(param,dtrain,num_round, evallist, logregobj_TL)
+# etf_model = xgb.train(param,dtrain,num_round, evallist, logregobj_TL)
 
 """
+Model to be trained with TDA features 
 w TDA
 """
 param_TDA = {'bst:max_depth':20, 'bst:eta':1, 'silent':1, 'objective':'binary:logistic', 'nthread':4,'eval_metric':'auc'}
 
 num_round_TDA = 3 # 5 #300 #16 #7 #100 #16 # 
 
+#### only run when no new preprocessing needed
 file_X_TDA_tr = r"C:\@data\ETF\i=8_TDA_L=52x8C\TDA\TDA_features_tr.csv"
 file_X_TDA_te = r"C:\@data\ETF\i=8_TDA_L=52x8C\TDA\TDA_features_te.csv"
 file_X_TDA_va = r"C:\@data\ETF\i=8_TDA_L=52x8C\TDA\TDA_features_va.csv"
@@ -88,6 +98,9 @@ file_X_TDA_va = "/Users/tieqiangli/@bp3/data/i=1_TDA_L=52x8/TDA/TDA_features_va.
 X_TDA_tr = pd.read_csv(file_X_TDA_tr)
 X_TDA_te = pd.read_csv(file_X_TDA_te)
 X_TDA_va = pd.read_csv(file_X_TDA_va)
+#### only run when no new preprocessing needed
+
+
 
 '''
 norm normalisation, deprecate for now
@@ -114,6 +127,7 @@ X_TDA_va = pd.concat([X_va,X_TDA_va.iloc[:,2:]],axis=1)
 #X_TDA_te = pd.concat([X_te,X_TDA_te.iloc[:,2]],axis=1)
 #X_TDA_va = pd.concat([X_va,X_TDA_va.iloc[:,2]],axis=1)
 
+# prepare model input data with TDA features
 dtrain_TDA = xgb.DMatrix(X_TDA_tr,label=y_tr)
 dtest_TDA = xgb.DMatrix(X_TDA_te,label=y_te)
 
@@ -121,7 +135,7 @@ evallist_TDA  = [(dtest_TDA,'eval'), (dtrain_TDA,'train')]
 
 etf_model_TDA = xgb.train(param_TDA,dtrain_TDA,num_round_TDA,evallist_TDA)
 # with customised objective function
-etf_model_TDA = xgb.train(param_TDA,dtrain_TDA,num_round_TDA,evallist_TDA,logregobj_TL)
+# etf_model_TDA = xgb.train(param_TDA,dtrain_TDA,num_round_TDA,evallist_TDA,logregobj_TL)
 """
 feature importance
 """
@@ -141,13 +155,24 @@ importance_frame_etf_TDA.plot(kind = 'barh', x = 'Feature', figsize = (8,8), col
 #columns_xBeta.append('dim0_KK4')
 #columns_xBeta.append('dim0_KK5')
 
+'''
+prediction without TDA
+'''
 dpred = xgb.DMatrix(X_va)
 y_pred_etf = etf_model.predict(dpred)
 
+
+'''
+prediction with TDA
+'''
 dpred_TDA = xgb.DMatrix(X_TDA_va)
 y_pred_etf_TDA = etf_model_TDA.predict(dpred_TDA)
 #y_pred = etf_model_TDA.predict(dpred)
 
+
+'''
+plot AUC and precision/recall charts without TDA
+'''
 fpr_etf, tpr_etf, thresholds_etf = roc_curve(y_va, y_pred_etf, pos_label=1)
 auc_etf = auc(fpr_etf, tpr_etf)
 

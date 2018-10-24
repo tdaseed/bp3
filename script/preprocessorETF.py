@@ -9,17 +9,20 @@ import pandas as pd
 import numpy as np
 import re
 
-#f1 = r"C:\@data\ETF\raw\data_price_etf.csv"
-#f2 = r"C:\@data\ETF\raw\data_static_etf_com.csv"
+#f1 = r"C:\@data\ETF\raw\data_price.csv"
+#f2 = r"C:\@data\ETF\raw\data_static_com.csv"
 
-f1 = "/Users/tieqiangli/@bp3/data/raw/data_price_etf.csv"
-f2 = "/Users/tieqiangli/@bp3/data/raw/data_static_etf_com.csv"
+f1 = "/Users/tieqiangli/@bp3/data/raw/data_price.csv"
+f2 = "/Users/tieqiangli/@bp3/data/raw/data_static_com.csv"
 
+# dataframe for the market data
 df = pd.read_csv(f1) 
 th = 26
 col_drop = df.columns[df.count()<th]
 # remove NA etf
 df = df.drop(col_drop,axis=1)
+
+
 # static descriptors of each etf
 df_static = pd.read_csv(f2)
 
@@ -42,9 +45,14 @@ arr_ret = np.zeros(4)
 TH_y = 0.04 # 0.02 # return cut-off for binary target/classification
 array_tmp = np.zeros(num_fea)
 df_columns = ['y','r_4w','r_8w','r_13w','r_26w','r_52w','h_l_4w','h_l_8w','h_l_13w','h_l_26w','h_l_52w','std_13w','std_26w','std_52w']
+
+# temp dataframe for the column headers
 df_w = pd.DataFrame(df_columns,columns = ['feature_name'])
+
 DF = pd.concat([pd.DataFrame(df_columns),pd.DataFrame(df_static.columns)]).transpose()
 DF.columns = DF.iloc[0,:]
+
+# split the data into training, validation and testing parts
 prop_tr, prop_te, prop_va = 60, 20, 20
 
 #folder_TDA = r"C:\@data\ETF\i=8_TDA_L=52x8C\TDA"
@@ -55,14 +63,24 @@ prop_tr, prop_te, prop_va = 60, 20, 20
 #folder_TDA = r"C:\@data\ETF\TDA"
 #folder_TDA = r"C:\@data\ETF\TDA\@tmp"
 #folder_TDA = "/Users/tieqiangli/@bp3/data/i\=1_TDA_L\=52x8/TDA"
+
 folder_TDA = "/Users/tieqiangli/@bp3/data/i=1_TDA_L=52x8/TDA"
 
 #L = 104 # 81 # 
 #L = w*n + s + 3 # total length of the historical data in unit of weeks, need additional 4w for y
 #def PrepETF(window, stride, num_batch, total_hist_length, path_price, path_static, folder_TDA, folder_out):
+
+
 DF_tr = DF.drop(0) # training dataset placeholder
 DF_te = DF.drop(0) # testing dataset placeholder
 DF_va = DF.drop(0) # validation dataset placeholder
+
+
+'''
+ELT
+1st loop to cut the raw data into rolling traches
+to prepare for the subsequent feature engineering loop 
+'''
 k = 1
 for i in range(0,L-w-s-3,s): # loop with step size = 13 (3 months = 1 quarter)
     bgn = L - i
@@ -104,6 +122,10 @@ for i in range(0,L-w-s-3,s): # loop with step size = 13 (3 months = 1 quarter)
 #    print('progress = ' + "{:.0%}".format(prop))
     print('progress = ' + "{:.0f}%".format(prop))
     
+
+'''
+2nd loop in Python that engineers the normal features (i.e. non-TDA features)
+'''
 for i in range(0,L-w-s-3,s): # loop with step size = 13 (3 months = 1 quarter)
     bgn = L - i
     end = L - (w+i)

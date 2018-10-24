@@ -5,18 +5,6 @@ library(TDA)
 ## NEW TDA features ##
 ######################
 
-#file_in <- "C:\\Users\\tan.li\\Documents\\Investment\\Projects\\bicycleProject_cont
-#              \\feature_engineering\\input_pl_tr\\data_prices.csv"
-#file_out <- "C:\\Users\\tan.li\\Documents\\Investment\\Projects\\bicycleProject_cont
-#              \\feature_engineering\\output_pl_tr\\TDA_features.csv"
-
-# i = 8
-folder_tr <- "C:\\@data\\ETF\\i=8_TDA_L=52x8C\\TDA\\tr\\"
-folder_te <- "C:\\@data\\ETF\\i=8_TDA_L=52x8C\\TDA\\te\\"
-folder_va <- "C:\\@data\\ETF\\i=8_TDA_L=52x8C\\TDA\\va\\"
-
-folder_out <- "C:\\@data\\ETF\\i=8_TDA_L=52x8C\\TDA\\"
-
 # i = 1
 folder_tr <- "/Users/tieqiangli/@bp3/data/i=1_TDA_L=52x8/TDA/tr/"
 folder_te <- "/Users/tieqiangli/@bp3/data/i=1_TDA_L=52x8/TDA/te/"
@@ -35,6 +23,7 @@ GenerateFeatureTDA <- function(folder_tr, folder_te, folder_va, folder_out){
   #colnames(matrix_TDA_tr) <- c('ticker','dim_0_KK_1','dim_0_KK_2','dim_0_KK_3','dim_0_KK_4','dim_0_KK_5')
   #colnames(matrix_TDA_tr) <- c('ticker','norm_l1_KK_1','norm_l1_KK_2','norm_l1_KK_3','norm_l1_KK_4','norm_l1_KK_5',
   #                             'norm_l2_KK_1','norm_l2_KK_2','norm_l2_KK_3','norm_l2_KK_4','norm_l2_KK_5')
+  
   n <- (length(list.files(folder_tr)) + length(list.files(folder_te)) + length(list.files(folder_va)))
   t=1 # recording the number of TDA files processed
   for(f in list.files(folder_tr)){
