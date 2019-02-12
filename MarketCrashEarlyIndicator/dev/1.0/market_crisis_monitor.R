@@ -1,3 +1,5 @@
+rm(list=ls(all=TRUE))
+
 library(TDA)
 library(dplyr)
 library(xgboost)
@@ -242,13 +244,17 @@ for (md in seq(3,10,1)){
 
 f <- "N:/Risk_and_Performance/Public/Analytics/Risk@Weekly/dev/1.0/input.csv"
 f <- "N:/Risk_and_Performance/Public/Analytics/Risk@Weekly/dev/1.0/input_FF.csv"
+
+f <- "C:/Users/TanL/Documents/N/Risk_and_Performance/Public/Analytics/Risk@Weekly/dev/1.0/input.csv"
+f <- "C:/Users/TanL/Documents/N/Risk_and_Performance/Public/Analytics/Risk@Weekly/dev/1.0/input_FTSE.csv"
 #f <- "/Users/tieqiangli/@crisis_monitor/input.csv"
-  
+
 df <- read.csv(f)
 df <- arrange(df, -row_number())
 
 tgt_ind <- 'EQY_HSI' # 'EQY_SPX'#  
 tgt_ind <- 'EQY_SPX' # 'EQY_HSI'#  
+tgt_ind <- 'EQY_UKX'   
 
 ### meta parameters
 w <- 26
@@ -269,13 +275,16 @@ Use_TDA <- TRUE # FALSE
 f_out <- "N:/Risk_and_Performance/Public/Analytics/Risk@Weekly/Backtest/"
 f_out <- "N:/Risk_and_Performance/Public/Analytics/Risk@Weekly/Backtest/20190109/"
 
+f_out <- "C:/Users/TanL/Documents/N/Risk_and_Performance/Public/Analytics/Risk@Weekly/Backtest/"
+f_out <- "C:/Users/TanL/Documents/N/Risk_and_Performance/Public/Analytics/Risk@Weekly/dev/1.0/results/"
+
 ###
 ### w TDA features
 ###
 for (i in seq(1, l-w-s, s)){
-#  print(i)
+  #  print(i)
   j <- i+w-1
-#  print(j)
+  #  print(j)
   fea <- feaBuilder_TDA(df[i:j,])
   X_tr <- rbind(X_tr, fea) # appending the features of each batch/datapoint as a new row
   ret <- df[tgt_ind][j+d,1]/df[tgt_ind][j,1]-1
@@ -287,7 +296,7 @@ for (i in seq(1, l-w-s, s)){
   # }
   Y_tr <- rbind(Y_tr,y) # appending the binary y of each batch/datapoint as a label vector entry
   print(percent(j/l))
-#  print(df$Date[j])
+  #  print(df$Date[j])
 }
 
 ###
@@ -348,7 +357,7 @@ feaBuilder <- function(df_t){
   vol_DXY <- sd(df_t$FX_DXY[2:w]/df_t$FX_DXY[1:w-1]-1)*sqrt(52)
   #  vol_Gld <- sd(df_t$CTY_Gold[2:w]/df_t$CTY_Gold[1:w-1]-1)*sqrt(52)
   vol_Oil <- sd(df_t$CTY_WTICrude[2:w]/df_t$CTY_WTICrude[1:w-1]-1)*sqrt(52)
-
+  
   # Fama French 3 factors  
   # ret_1w_FF_Rm_Rf <- df_t$FF_Rm_Rf[w]/df_t$FF_Rm_Rf[w-1]-1
   # ret_1w_FF_SMB <- df_t$FF_SMB[w]/df_t$FF_SMB[w-1]-1
@@ -365,7 +374,7 @@ feaBuilder <- function(df_t){
                     sprd_2y10y,sprd_2y5y,
                     # ret_1w_FF_Rm_Rf, ret_1w_FF_SMB, ret_1w_FF_HML,
                     vol_tgt,vol_DXY,vol_Oil) #vol_Gld,
-                    # tda_tgt,tda_DXY,tda_Oil)#tda_Gld)
+  # tda_tgt,tda_DXY,tda_Oil)#tda_Gld)
   return(fea)
 }
 
@@ -379,19 +388,19 @@ feaBuilder_TDA <- function(df_t){
   # full window reutnr (w = 2 quarters in our case)
   ret_2q_tgt <- df_t[tgt_ind][w,1]/df_t[tgt_ind][1,1]-1  
   ret_2q_DXY <- df_t$FX_DXY[w]/df_t$FX_DXY[1]-1  
-#  ret_2q_Gld <- df_t$CTY_Gold[w]/df_t$CTY_Gold[1]-1  
+  #  ret_2q_Gld <- df_t$CTY_Gold[w]/df_t$CTY_Gold[1]-1  
   ret_2q_Oil <- df_t$CTY_WTICrude[w]/df_t$CTY_WTICrude[1]-1
   
   # term structure spread
   sprd_2y10y <- df_t$BON_USD2Y[w] - df_t$BON_USD10Y[w]
   sprd_2y5y  <- df_t$BON_USD2Y[w] - df_t$BON_USD5Y[w]
-
+  
   # vol of each market driver
   vol_tgt <- sd(df_t[tgt_ind][2:w,1]/df_t[tgt_ind][1:w-1,1]-1)*sqrt(52)
   vol_DXY <- sd(df_t$FX_DXY[2:w]/df_t$FX_DXY[1:w-1]-1)*sqrt(52)
-#  vol_Gld <- sd(df_t$CTY_Gold[2:w]/df_t$CTY_Gold[1:w-1]-1)*sqrt(52)
+  #  vol_Gld <- sd(df_t$CTY_Gold[2:w]/df_t$CTY_Gold[1:w-1]-1)*sqrt(52)
   vol_Oil <- sd(df_t$CTY_WTICrude[2:w]/df_t$CTY_WTICrude[1:w-1]-1)*sqrt(52)
-
+  
   # Fama French 3 factors  
   # ret_1w_FF_Rm_Rf <- df_t$FF_Rm_Rf[w]/df_t$FF_Rm_Rf[w-1]-1
   # ret_1w_FF_SMB <- df_t$FF_SMB[w]/df_t$FF_SMB[w-1]-1
@@ -400,7 +409,7 @@ feaBuilder_TDA <- function(df_t){
   # 1-norm of the landscape of each market driver
   tda_tgt <- landscaperNorm(df_t[tgt_ind])
   tda_DXY <- landscaperNorm(df_t["FX_DXY"])
-#  tda_Gld <- landscaperNorm(df_t["CTY_Gold"])
+  #  tda_Gld <- landscaperNorm(df_t["CTY_Gold"])
   tda_Oil <- landscaperNorm(df_t["CTY_WTICrude"])
   
   fea <- data.frame(ret_1w_tgt,ret_1w_DXY,ret_1w_Gld,ret_1w_Oil,
@@ -425,12 +434,12 @@ landscaperNorm <- function(ts){
   Lmin <- min(Diag[['diagram']][,2:3])
   Lmax <- max(Diag[['diagram']][,2:3])
   tseq <- seq(Lmin, Lmax, length = 50)
-    # calc norm at KK=2  
+  # calc norm at KK=2  
   l2 <- landscape(Diag[["diagram"]],dimension = 0,KK=2, tseq = tseq)
   n2 <- norm(l2, type = "O") # specifies the one norm
   # calc norm at KK=3  
-#   l3 <- landscape(Diag[["diagram"]],dimension = 0,KK=3, tseq = tseq)
-#   n3 <- norm(l3, type = "O")
+  #   l3 <- landscape(Diag[["diagram"]],dimension = 0,KK=3, tseq = tseq)
+  #   n3 <- norm(l3, type = "O")
   return(n2)
 }
 
@@ -466,8 +475,8 @@ k <- L - l # remaining weeks
 # -s to leave the stride s do its last move
 date_test_end <- L-w-d-s  
 
-mx_depth <- 3 # 5
-nrounds <- 5 #30
+max_depth <- 5 # 3 # 5
+nrounds <- 10 # 5 #30
 
 Y_date  <- data.frame()
 Y_true  <- data.frame()
@@ -506,7 +515,7 @@ for (i in seq(l-1, date_test_end ,s)){
   ####
   #### re-train the model with the data from new weeks
   ####
-  bst <- modelTrainer(X_tr, Y_tr, nrounds, max_depth = 5)
+  bst <- modelTrainer(X_tr, Y_tr, nrounds, max_depth)
   
   ####
   #### build the test x and true y, and record the predition y in each loop
@@ -555,25 +564,25 @@ for (i in seq(l-1, date_test_end ,s)){
   ####
   #### re-train the model with the data from new weeks
   ####
-  bst <- modelTrainer(X_tr, Y_tr, nrounds, max_depth = 5)
+  bst_xTDA <- modelTrainer(X_tr, Y_tr, nrounds, max_depth)
   
   ####
   #### build the test x and true y, and record the predition y in each loop
   ####
   x_test <- feaBuilder(df[i+d:j+d,])
   ret_true <- df[tgt_ind][j+d+d,1]/df[tgt_ind][j+d,1]-1
-
+  
   # y_date <- df$Date[j]
   # Y_date <- rbind(Y_date, as.Date(y_date, "%m/%d/%Y"))
   
   y_true <- labeler(ret_true)
   Y_true <- rbind(Y_true, y_true)
   
-  y_pred <- predict(bst, as.matrix(x_test))
+  y_pred <- predict(bst_xTDA, as.matrix(x_test))
   Y_pred <- rbind(Y_pred, y_pred)
   
   
-  fea_importance <- xgb.importance (feature_names = colnames(X_tr),model = bst)
+  fea_importance <- xgb.importance (feature_names = colnames(X_tr),model = bst_xTDA)
   fea_importance <- cbind.data.frame(fea_importance$Feature, fea_importance$Gain)
   colnames(fea_importance) <- cbind("Feature", paste("Importance",toString(i-L+2)))
   Y_feat <- merge(x=Y_feat, y=fea_importance, by="Feature", all.x=TRUE)
@@ -585,13 +594,11 @@ end <- j
 # end <- start+k-4 -2
 Y_date <- df$Date[start:end]
 #Y_price <- df[tgt_ind][start:end,]
-crisis_pred <- cbind.data.frame(Y_date,Y_pred)
-crisis_pred <- cbind.data.frame(Y_date,Y_pred, Y_true, t(Y_feat[,2:dim(Y_feat)[2]]))
-colnames(crisis_pred)[4:dim(crisis_pred)[2]] <- as.character(Y_feat$Feature)
-colnames(crisis_pred)[2] <- "Y_pred"
-colnames(crisis_pred)[3] <- "Y_true"
-f_out <- "N:/Risk_and_Performance/Public/Analytics/Risk@Weekly/Backtest/test1.csv"
-write.csv(crisis_pred,f_out, row.names=FALSE)
+# crisis_pred <- cbind.data.frame(Y_date,Y_pred)
+# crisis_pred <- cbind.data.frame(Y_date,Y_pred, Y_true, t(Y_feat[,2:dim(Y_feat)[2]]))
+# colnames(crisis_pred)[4:dim(crisis_pred)[2]] <- as.character(Y_feat$Feature)
+# colnames(crisis_pred)[2] <- "Y_pred"
+# colnames(crisis_pred)[3] <- "Y_true"
 
 
 library(ROCR)
@@ -600,22 +607,91 @@ pred <- prediction(Y_pred,Y_true)
 auc <- performance(pred,measure = "auc")
 print(auc@y.values)
 acc <- performance(pred,measure = "acc")
-print(acc@y.values)
+err <- performance(pred,measure = "err")
+# print(acc@y.values)
 perf <- performance(pred,measure = "tpr", x.measure = "fpr")
-plot(perf)
+# plot(perf)
+prec <- performance(pred, measure = 'prec')
+rec <- performance(pred, measure = 'rec')
+fpr <- performance(pred, measure = 'fpr')
+fnr <- performance(pred, measure = 'fnr')
+mat <- performance(pred, measure = 'mat')
 
 pred_xTDA <- prediction(Y_pred,Y_true)
 auc_xTDA <- performance(pred_xTDA,measure = "auc")
 print(auc_xTDA@y.values)
 acc_xTDA <- performance(pred_xTDA,measure = "acc")
-print(acc_xTDA@y.values)
-plot(acc_xTDA)
+err_xTDA <- performance(pred_xTDA,measure = "err")
+# print(acc_xTDA@y.values)
+# plot(acc_xTDA)
 perf_xTDA <- performance(pred_xTDA,measure = "tpr", x.measure = "fpr")
-plot(perf_xTDA)
+# plot(perf_xTDA)
+prec_xTDA <- performance(pred_xTDA, measure = 'prec')
+rec_xTDA <- performance(pred_xTDA, measure = 'rec')
+fpr_xTDA <- performance(pred_xTDA, measure = 'fpr')
+fnr_xTDA <- performance(pred_xTDA, measure = 'fnr')
+mat_xTDA <- performance(pred_xTDA, measure = 'mat')
 
 f_xTDA <- performance(pred_xTDA, measure = "f")
 f <- performance(pred, measure = "f")
 
-plot(f_xTDA)
-plot(f, add = TRUE)
+plot(f_xTDA, legend=TRUE,col='blue')
+plot(f, col='red',legend=TRUE, add = TRUE)
+legend(0.1,0.1,legend=c('model with TDA','model without TDA'),col=c('red','blue'),lwd=3)
 # plot(f, add = TRUE, colorize = TRUE)
+
+# plot(prec_xTDA, legend=TRUE,col='blue')
+# plot(prec, col='red',legend=TRUE, add = TRUE)
+# legend(0.1,0.1,legend=c('model with TDA','model without TDA'),col=c('red','blue'),lwd=3)
+# 
+# plot(rec_xTDA, legend=TRUE,col='blue')
+# plot(rec, col='red',legend=TRUE, add = TRUE)
+# legend(0.1,0.1,legend=c('model with TDA','model without TDA'),col=c('red','blue'),lwd=3)
+# 
+# plot(fpr_xTDA, legend=TRUE,col='blue')
+# plot(fpr, col='red',legend=TRUE, add = TRUE)
+# legend(0.5, 1,legend=c('model with TDA','model without TDA'),col=c('red','blue'),lwd=3)
+# 
+# plot(fnr_xTDA, legend=TRUE,col='blue')
+# plot(fnr, col='red',legend=TRUE, add = TRUE)
+# legend(0.5, 0.2,legend=c('model with TDA','model without TDA'),col=c('red','blue'),lwd=3)
+# 
+# plot(acc_xTDA, legend=TRUE,col='blue')
+# plot(acc, col='red',legend=TRUE, add = TRUE)
+# legend(0.5, 0.2,legend=c('model with TDA','model without TDA'),col=c('red','blue'),lwd=3)
+# 
+# plot(err_xTDA, legend=TRUE,col='blue')
+# plot(err, col='red',legend=TRUE, add = TRUE)
+# legend(0.5, 0.2,legend=c('model with TDA','model without TDA'),col=c('red','blue'),lwd=3)
+
+plot(mat_xTDA, legend=TRUE,col='blue')
+plot(mat, col='red',legend=TRUE, add = TRUE)
+legend(0.5, 0.25,legend=c('model with TDA','model without TDA'),col=c('red','blue'),lwd=3)
+
+legend1 <- paste('model with TDA, auc=', toString(percent(auc@y.values[[1]])), sep = '')
+legend2 <- paste('model without TDA, auc=', toString(percent(auc_xTDA@y.values[[1]])), sep = '')
+plot(perf, col='red')
+plot(perf_xTDA, add = TRUE, col='blue')
+legend(0.4,0.2,legend=c(legend1,legend2),col=c('red','blue'),lwd=3)
+
+library(DiagrammeR)
+xgb.plot.tree(model=bst,trees=nrounds-1)
+
+gr <- xgb.plot.tree(model=bst,trees=nrounds-1)
+export_graph(gr, 'tree.png')
+
+###
+### save the results
+###
+if (Use_TDA == TRUE)
+{f_out <- paste(f_out, "output_auc=", percent(auc@y.values[[1]]),
+                "_md=", toString(max_depth), "_n=", toString(nrounds), "_",
+                toString(w), "w_", str_sub(tgt_ind,-3,-1), 
+                "_TDA.csv", sep = "")} else
+                {f_out <- paste(f_out, "output_auc=", percent(auc_xTDA@y.values[[1]]),
+                                "_md=", toString(max_depth), "_n=", toString(nrounds), "_",
+                                toString(w), "w_", str_sub(tgt_ind,-3,-1), 
+                                ".csv", sep = "")}
+
+# f_out <- "N:/Risk_and_Performance/Public/Analytics/Risk@Weekly/Backtest/test1.csv"
+write.csv(crisis_pred,f_out, row.names=FALSE)
