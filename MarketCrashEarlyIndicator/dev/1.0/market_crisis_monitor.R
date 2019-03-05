@@ -245,8 +245,9 @@ for (md in seq(3,10,1)){
 f <- "N:/Risk_and_Performance/Public/Analytics/Risk@Weekly/dev/1.0/input.csv"
 f <- "N:/Risk_and_Performance/Public/Analytics/Risk@Weekly/dev/1.0/input_FF.csv"
 
-f <- "C:/Users/TanL/Documents/N/Risk_and_Performance/Public/Analytics/Risk@Weekly/dev/1.0/input.csv"
-f <- "C:/Users/TanL/Documents/N/Risk_and_Performance/Public/Analytics/Risk@Weekly/dev/1.0/input_FTSE.csv"
+f <- "C:/bp3/MarketCrashEarlyIndicator/dev/1.0/input.csv"
+f <- "C:/bp3/MarketCrashEarlyIndicator/dev/1.0/input_FF.csv"
+f <- "C:/bp3/MarketCrashEarlyIndicator/dev/1.0/input_FTSE.csv"
 #f <- "/Users/tieqiangli/@crisis_monitor/input.csv"
 
 df <- read.csv(f)
@@ -272,11 +273,13 @@ Y_tr <- data.frame()
 Use_TDA <- FALSE # TRUE
 Use_TDA <- TRUE # FALSE 
 
-f_out <- "N:/Risk_and_Performance/Public/Analytics/Risk@Weekly/Backtest/"
-f_out <- "N:/Risk_and_Performance/Public/Analytics/Risk@Weekly/Backtest/20190109/"
+f_out <- "C:/bp3/MarketCrashEarlyIndicator/dev/1.0/results/"
 
-f_out <- "C:/Users/TanL/Documents/N/Risk_and_Performance/Public/Analytics/Risk@Weekly/Backtest/"
-f_out <- "C:/Users/TanL/Documents/N/Risk_and_Performance/Public/Analytics/Risk@Weekly/dev/1.0/results/"
+# f_out <- "N:/Risk_and_Performance/Public/Analytics/Risk@Weekly/Backtest/"
+# f_out <- "N:/Risk_and_Performance/Public/Analytics/Risk@Weekly/Backtest/20190109/"
+# 
+# f_out <- "C:/Users/TanL/Documents/N/Risk_and_Performance/Public/Analytics/Risk@Weekly/Backtest/"
+# f_out <- "C:/Users/TanL/Documents/N/Risk_and_Performance/Public/Analytics/Risk@Weekly/dev/1.0/results/"
 
 ###
 ### w TDA features
@@ -359,9 +362,9 @@ feaBuilder <- function(df_t){
   vol_Oil <- sd(df_t$CTY_WTICrude[2:w]/df_t$CTY_WTICrude[1:w-1]-1)*sqrt(52)
   
   # Fama French 3 factors  
-  # ret_1w_FF_Rm_Rf <- df_t$FF_Rm_Rf[w]/df_t$FF_Rm_Rf[w-1]-1
-  # ret_1w_FF_SMB <- df_t$FF_SMB[w]/df_t$FF_SMB[w-1]-1
-  # ret_1w_FF_HML <- df_t$FF_HML[w]/df_t$FF_HML[w-1]-1
+  ret_1w_FF_Rm_Rf <- df_t$FF_Rm_Rf[w]/df_t$FF_Rm_Rf[w-1]-1
+  ret_1w_FF_SMB <- df_t$FF_SMB[w]/df_t$FF_SMB[w-1]-1
+  ret_1w_FF_HML <- df_t$FF_HML[w]/df_t$FF_HML[w-1]-1
   
   # 1-norm of the landscape of each market driver
   # tda_tgt <- landscaperNorm(df_t[tgt_ind])
@@ -372,7 +375,7 @@ feaBuilder <- function(df_t){
   fea <- data.frame(ret_1w_tgt,ret_1w_DXY,ret_1w_Gld,ret_1w_Oil,
                     ret_2q_tgt,ret_2q_DXY,ret_2q_Oil,#ret_2q_Gld,
                     sprd_2y10y,sprd_2y5y,
-                    # ret_1w_FF_Rm_Rf, ret_1w_FF_SMB, ret_1w_FF_HML,
+                    ret_1w_FF_Rm_Rf, ret_1w_FF_SMB, ret_1w_FF_HML,
                     vol_tgt,vol_DXY,vol_Oil) #vol_Gld,
   # tda_tgt,tda_DXY,tda_Oil)#tda_Gld)
   return(fea)
@@ -402,9 +405,9 @@ feaBuilder_TDA <- function(df_t){
   vol_Oil <- sd(df_t$CTY_WTICrude[2:w]/df_t$CTY_WTICrude[1:w-1]-1)*sqrt(52)
   
   # Fama French 3 factors  
-  # ret_1w_FF_Rm_Rf <- df_t$FF_Rm_Rf[w]/df_t$FF_Rm_Rf[w-1]-1
-  # ret_1w_FF_SMB <- df_t$FF_SMB[w]/df_t$FF_SMB[w-1]-1
-  # ret_1w_FF_HML <- df_t$FF_HML[w]/df_t$FF_HML[w-1]-1
+  ret_1w_FF_Rm_Rf <- df_t$FF_Rm_Rf[w]/df_t$FF_Rm_Rf[w-1]-1
+  ret_1w_FF_SMB <- df_t$FF_SMB[w]/df_t$FF_SMB[w-1]-1
+  ret_1w_FF_HML <- df_t$FF_HML[w]/df_t$FF_HML[w-1]-1
   
   # 1-norm of the landscape of each market driver
   tda_tgt <- landscaperNorm(df_t[tgt_ind])
@@ -416,7 +419,7 @@ feaBuilder_TDA <- function(df_t){
                     ret_2q_tgt,ret_2q_DXY,ret_2q_Oil,#ret_2q_Gld,
                     sprd_2y10y,sprd_2y5y,
                     vol_tgt,vol_DXY,vol_Oil,#vol_Gld,
-                    # ret_1w_FF_Rm_Rf, ret_1w_FF_SMB, ret_1w_FF_HML,
+                    ret_1w_FF_Rm_Rf, ret_1w_FF_SMB, ret_1w_FF_HML,
                     tda_tgt,tda_DXY,tda_Oil)#tda_Gld)
   return(fea)
 }
@@ -589,16 +592,16 @@ for (i in seq(l-1, date_test_end ,s)){
 }
 
 
-start <- l-1+w-1 #l-1
-end <- j
+start <- d + l-1+w-1 #l-1
+end <- d + j
 # end <- start+k-4 -2
 Y_date <- df$Date[start:end]
 #Y_price <- df[tgt_ind][start:end,]
-# crisis_pred <- cbind.data.frame(Y_date,Y_pred)
-# crisis_pred <- cbind.data.frame(Y_date,Y_pred, Y_true, t(Y_feat[,2:dim(Y_feat)[2]]))
-# colnames(crisis_pred)[4:dim(crisis_pred)[2]] <- as.character(Y_feat$Feature)
-# colnames(crisis_pred)[2] <- "Y_pred"
-# colnames(crisis_pred)[3] <- "Y_true"
+crisis_pred <- cbind.data.frame(Y_date,Y_pred)
+crisis_pred <- cbind.data.frame(Y_date,Y_pred, Y_true, t(Y_feat[,2:dim(Y_feat)[2]]))
+colnames(crisis_pred)[4:dim(crisis_pred)[2]] <- as.character(Y_feat$Feature)
+colnames(crisis_pred)[2] <- "Y_pred"
+colnames(crisis_pred)[3] <- "Y_true"
 
 
 library(ROCR)
@@ -635,6 +638,12 @@ mat_xTDA <- performance(pred_xTDA, measure = 'mat')
 f_xTDA <- performance(pred_xTDA, measure = "f")
 f <- performance(pred, measure = "f")
 
+legend1 <- paste('model with TDA, auc=', toString(percent(auc@y.values[[1]])), sep = '')
+legend2 <- paste('model without TDA, auc=', toString(percent(auc_xTDA@y.values[[1]])), sep = '')
+plot(perf, col='red')
+plot(perf_xTDA, add = TRUE, col='blue')
+legend(0.4,0.2,legend=c(legend1,legend2),col=c('red','blue'),lwd=3)
+
 plot(f_xTDA, legend=TRUE,col='blue')
 plot(f, col='red',legend=TRUE, add = TRUE)
 legend(0.1,0.1,legend=c('model with TDA','model without TDA'),col=c('red','blue'),lwd=3)
@@ -664,15 +673,10 @@ legend(0.1,0.1,legend=c('model with TDA','model without TDA'),col=c('red','blue'
 # plot(err, col='red',legend=TRUE, add = TRUE)
 # legend(0.5, 0.2,legend=c('model with TDA','model without TDA'),col=c('red','blue'),lwd=3)
 
-plot(mat_xTDA, legend=TRUE,col='blue')
-plot(mat, col='red',legend=TRUE, add = TRUE)
-legend(0.5, 0.25,legend=c('model with TDA','model without TDA'),col=c('red','blue'),lwd=3)
+# plot(mat_xTDA, legend=TRUE,col='blue')
+# plot(mat, col='red',legend=TRUE, add = TRUE)
+# legend(0.5, 0.25,legend=c('model with TDA','model without TDA'),col=c('red','blue'),lwd=3)
 
-legend1 <- paste('model with TDA, auc=', toString(percent(auc@y.values[[1]])), sep = '')
-legend2 <- paste('model without TDA, auc=', toString(percent(auc_xTDA@y.values[[1]])), sep = '')
-plot(perf, col='red')
-plot(perf_xTDA, add = TRUE, col='blue')
-legend(0.4,0.2,legend=c(legend1,legend2),col=c('red','blue'),lwd=3)
 
 library(DiagrammeR)
 xgb.plot.tree(model=bst,trees=nrounds-1)
@@ -683,15 +687,16 @@ export_graph(gr, 'tree.png')
 ###
 ### save the results
 ###
-if (Use_TDA == TRUE)
-{f_out <- paste(f_out, "output_auc=", percent(auc@y.values[[1]]),
-                "_md=", toString(max_depth), "_n=", toString(nrounds), "_",
-                toString(w), "w_", str_sub(tgt_ind,-3,-1), 
-                "_TDA.csv", sep = "")} else
-                {f_out <- paste(f_out, "output_auc=", percent(auc_xTDA@y.values[[1]]),
-                                "_md=", toString(max_depth), "_n=", toString(nrounds), "_",
-                                toString(w), "w_", str_sub(tgt_ind,-3,-1), 
-                                ".csv", sep = "")}
+f_out <- "C:/bp3/MarketCrashEarlyIndicator/dev/1.0/results/"
 
-# f_out <- "N:/Risk_and_Performance/Public/Analytics/Risk@Weekly/Backtest/test1.csv"
+if (Use_TDA == TRUE)
+  {f_out <- paste(f_out, "output_auc=", percent(auc@y.values[[1]]),
+                  "_md=", toString(max_depth), "_n=", toString(nrounds), "_",
+                  toString(w), "w_", str_sub(tgt_ind,-3,-1), 
+                  "_TDA_FF.csv", sep = "")} else
+  {f_out <- paste(f_out, "output_auc=", percent(auc_xTDA@y.values[[1]]),
+                  "_md=", toString(max_depth), "_n=", toString(nrounds), "_",
+                  toString(w), "w_", str_sub(tgt_ind,-3,-1), 
+                  "_FF.csv", sep = "")}
+
 write.csv(crisis_pred,f_out, row.names=FALSE)
