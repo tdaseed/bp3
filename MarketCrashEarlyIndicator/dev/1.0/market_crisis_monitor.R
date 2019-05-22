@@ -10,6 +10,12 @@ library(stringr)
 library(ROCR)
 library(ggplot2)
 
+
+f_out <- "C:/HyperParameter_FineTune_SPX/"
+f_out <- "C:/HyperParameter_FineTune_UKX/"
+
+f_out <- "C:/bp3/MarketCrashEarlyIndicator/dev/1.0/results/201904/"
+
 ###
 ### define a function to handle the backtesting
 ###
@@ -205,8 +211,8 @@ backtester <- function(
                   ".csv", sep = "")}
   # plot(perf)
   
-  start <- l-1+w-1 #l-1
-  end <- j
+  start <- d + l-1+w-1 #l-1
+  end <- d + j # j
   Y_date <- df$Date[start:end]
   #Y_price <- df[tgt_ind][start:end,]
   crisis_pred <- cbind.data.frame(Y_date,Y_pred, Y_true, t(Y_feat[,2:dim(Y_feat)[2]]))
@@ -250,6 +256,8 @@ f <- "C:/bp3/MarketCrashEarlyIndicator/dev/1.0/input_FF.csv"
 f <- "C:/bp3/MarketCrashEarlyIndicator/dev/1.0/input_FTSE.csv"
 #f <- "/Users/tieqiangli/@crisis_monitor/input.csv"
 
+f <- "C:/bp3/MarketCrashEarlyIndicator/dev/1.0/input_201904.csv"
+
 df <- read.csv(f)
 df <- arrange(df, -row_number())
 
@@ -273,7 +281,7 @@ Y_tr <- data.frame()
 Use_TDA <- FALSE # TRUE
 Use_TDA <- TRUE # FALSE 
 
-f_out <- "C:/bp3/MarketCrashEarlyIndicator/dev/1.0/results/"
+f_out <- "C:/bp3/MarketCrashEarlyIndicator/dev/1.0/results/misc/"
 
 # f_out <- "N:/Risk_and_Performance/Public/Analytics/Risk@Weekly/Backtest/"
 # f_out <- "N:/Risk_and_Performance/Public/Analytics/Risk@Weekly/Backtest/20190109/"
@@ -301,11 +309,45 @@ for (i in seq(1, l-w-s, s)){
   print(percent(j/l))
   #  print(df$Date[j])
 }
+for (i in seq(1, 1302, s)){
+  #  print(i)
+  j <- i+w-1
+  #  print(j)
+  fea <- feaBuilder_TDA(df[i:j,])
+  X_tr <- rbind(X_tr, fea) # appending the features of each batch/datapoint as a new row
+  ret <- df[tgt_ind][j+d,1]/df[tgt_ind][j,1]-1
+  y <- labeler(ret)
+  # if (ret < TH){
+  #   y <- 1
+  # } else {
+  #   y = 0
+  # }
+  Y_tr <- rbind(Y_tr,y) # appending the binary y of each batch/datapoint as a label vector entry
+  print(percent(j/l))
+  #  print(df$Date[j])
+}
 
 ###
 ### x TDA features
 ###
 for (i in seq(1, l-w-s, s)){
+  #  print(i)
+  j <- i+w-1
+  #  print(j)
+  fea <- feaBuilder(df[i:j,])
+  X_tr <- rbind(X_tr, fea) # appending the features of each batch/datapoint as a new row
+  ret <- df[tgt_ind][j+d,1]/df[tgt_ind][j,1]-1
+  y <- labeler(ret)
+  # if (ret < TH){
+  #   y <- 1
+  # } else {
+  #   y = 0
+  # }
+  Y_tr <- rbind(Y_tr,y) # appending the binary y of each batch/datapoint as a label vector entry
+  print(percent(j/l))
+  #  print(df$Date[j])
+}
+for (i in seq(1, 1302, s)){
   #  print(i)
   j <- i+w-1
   #  print(j)
@@ -362,9 +404,9 @@ feaBuilder <- function(df_t){
   vol_Oil <- sd(df_t$CTY_WTICrude[2:w]/df_t$CTY_WTICrude[1:w-1]-1)*sqrt(52)
   
   # Fama French 3 factors  
-  ret_1w_FF_Rm_Rf <- df_t$FF_Rm_Rf[w]/df_t$FF_Rm_Rf[w-1]-1
-  ret_1w_FF_SMB <- df_t$FF_SMB[w]/df_t$FF_SMB[w-1]-1
-  ret_1w_FF_HML <- df_t$FF_HML[w]/df_t$FF_HML[w-1]-1
+  # ret_1w_FF_Rm_Rf <- df_t$FF_Rm_Rf[w]/df_t$FF_Rm_Rf[w-1]-1
+  # ret_1w_FF_SMB <- df_t$FF_SMB[w]/df_t$FF_SMB[w-1]-1
+  # ret_1w_FF_HML <- df_t$FF_HML[w]/df_t$FF_HML[w-1]-1
   
   # 1-norm of the landscape of each market driver
   # tda_tgt <- landscaperNorm(df_t[tgt_ind])
@@ -375,7 +417,7 @@ feaBuilder <- function(df_t){
   fea <- data.frame(ret_1w_tgt,ret_1w_DXY,ret_1w_Gld,ret_1w_Oil,
                     ret_2q_tgt,ret_2q_DXY,ret_2q_Oil,#ret_2q_Gld,
                     sprd_2y10y,sprd_2y5y,
-                    ret_1w_FF_Rm_Rf, ret_1w_FF_SMB, ret_1w_FF_HML,
+                    # ret_1w_FF_Rm_Rf, ret_1w_FF_SMB, ret_1w_FF_HML,
                     vol_tgt,vol_DXY,vol_Oil) #vol_Gld,
   # tda_tgt,tda_DXY,tda_Oil)#tda_Gld)
   return(fea)
@@ -405,9 +447,9 @@ feaBuilder_TDA <- function(df_t){
   vol_Oil <- sd(df_t$CTY_WTICrude[2:w]/df_t$CTY_WTICrude[1:w-1]-1)*sqrt(52)
   
   # Fama French 3 factors  
-  ret_1w_FF_Rm_Rf <- df_t$FF_Rm_Rf[w]/df_t$FF_Rm_Rf[w-1]-1
-  ret_1w_FF_SMB <- df_t$FF_SMB[w]/df_t$FF_SMB[w-1]-1
-  ret_1w_FF_HML <- df_t$FF_HML[w]/df_t$FF_HML[w-1]-1
+  # ret_1w_FF_Rm_Rf <- df_t$FF_Rm_Rf[w]/df_t$FF_Rm_Rf[w-1]-1
+  # ret_1w_FF_SMB <- df_t$FF_SMB[w]/df_t$FF_SMB[w-1]-1
+  # ret_1w_FF_HML <- df_t$FF_HML[w]/df_t$FF_HML[w-1]-1
   
   # 1-norm of the landscape of each market driver
   tda_tgt <- landscaperNorm(df_t[tgt_ind])
@@ -419,7 +461,7 @@ feaBuilder_TDA <- function(df_t){
                     ret_2q_tgt,ret_2q_DXY,ret_2q_Oil,#ret_2q_Gld,
                     sprd_2y10y,sprd_2y5y,
                     vol_tgt,vol_DXY,vol_Oil,#vol_Gld,
-                    ret_1w_FF_Rm_Rf, ret_1w_FF_SMB, ret_1w_FF_HML,
+                    # ret_1w_FF_Rm_Rf, ret_1w_FF_SMB, ret_1w_FF_HML,
                     tda_tgt,tda_DXY,tda_Oil)#tda_Gld)
   return(fea)
 }
@@ -480,6 +522,8 @@ date_test_end <- L-w-d-s
 
 max_depth <- 5 # 3 # 5
 nrounds <- 10 # 5 #30
+max_depth <- 3 # 5
+nrounds <- 5 #30
 
 Y_date  <- data.frame()
 Y_true  <- data.frame()
@@ -523,7 +567,7 @@ for (i in seq(l-1, date_test_end ,s)){
   ####
   #### build the test x and true y, and record the predition y in each loop
   ####
-  x_test <- feaBuilder_TDA(df[i+d:j+d,])
+  x_test <- feaBuilder_TDA(df[(i+d):(j+d),])
   x_test_1 <- feaBuilder_TDA(df[(i+d-s):(j+d-s),])
   x_test$tda_tgt <- x_test$tda_tgt/x_test_1$tda_tgt -1
   x_test$tda_DXY <- x_test$tda_DXY/x_test_1$tda_DXY -1
@@ -620,6 +664,9 @@ fpr <- performance(pred, measure = 'fpr')
 fnr <- performance(pred, measure = 'fnr')
 mat <- performance(pred, measure = 'mat')
 
+f <- performance(pred, measure = "f")
+
+
 pred_xTDA <- prediction(Y_pred,Y_true)
 auc_xTDA <- performance(pred_xTDA,measure = "auc")
 print(auc_xTDA@y.values)
@@ -636,7 +683,6 @@ fnr_xTDA <- performance(pred_xTDA, measure = 'fnr')
 mat_xTDA <- performance(pred_xTDA, measure = 'mat')
 
 f_xTDA <- performance(pred_xTDA, measure = "f")
-f <- performance(pred, measure = "f")
 
 legend1 <- paste('model with TDA, auc=', toString(percent(auc@y.values[[1]])), sep = '')
 legend2 <- paste('model without TDA, auc=', toString(percent(auc_xTDA@y.values[[1]])), sep = '')
@@ -680,6 +726,10 @@ legend(0.1,0.1,legend=c('model with TDA','model without TDA'),col=c('red','blue'
 
 library(DiagrammeR)
 xgb.plot.tree(model=bst,trees=nrounds-1)
+xgb.plot.tree(model=bst_xTDA,trees=nrounds-1)
+xgb.plot.multi.trees(model=bst_xTDA)
+xgb.plot.multi.trees(model=bst)
+xgb.plot.tree(model=bst,trees=0)
 
 gr <- xgb.plot.tree(model=bst,trees=nrounds-1)
 export_graph(gr, 'tree.png')
@@ -693,10 +743,15 @@ if (Use_TDA == TRUE)
   {f_out <- paste(f_out, "output_auc=", percent(auc@y.values[[1]]),
                   "_md=", toString(max_depth), "_n=", toString(nrounds), "_",
                   toString(w), "w_", str_sub(tgt_ind,-3,-1), 
-                  "_TDA_FF.csv", sep = "")} else
+                  "_TDA.csv", sep = "")} else
   {f_out <- paste(f_out, "output_auc=", percent(auc_xTDA@y.values[[1]]),
                   "_md=", toString(max_depth), "_n=", toString(nrounds), "_",
                   toString(w), "w_", str_sub(tgt_ind,-3,-1), 
-                  "_FF.csv", sep = "")}
+                  ".csv", sep = "")}
 
 write.csv(crisis_pred,f_out, row.names=FALSE)
+
+Y_date_tr <- df$Date[27:j]
+X_tr_out <- cbind.data.frame(Y_date_tr,X_tr)
+f_out_tr <- "C:/bp3/MarketCrashEarlyIndicator/dev/1.0/results/output_SPX_TDA_tr.csv"
+write.csv(X_tr,f_out_tr, row.names=FALSE)
